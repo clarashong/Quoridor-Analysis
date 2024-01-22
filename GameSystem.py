@@ -14,7 +14,20 @@ class Board:
     ----------
     grid: str[][] 
         grid with the game setup, player location, wall locations 
-
+    wall_cols: int[]
+        list of indexes where walls can be placed 
+    wall_cols: int[] 
+        list of indexes where walls can be placed
+    p1: Player
+        player 1 (bottom player)
+    p2: Player 
+        player 2 (top player)
+    curr_player: Player
+        the current player for the current turn
+    finished: bool
+        whether the game is finished
+    turn: int
+        current turn number
     """
     
     def __init__(self):
@@ -32,14 +45,20 @@ class Board:
         self.turn = 1
         
     def playGame(self):
+        """
+        Take turns until game is finished
+        """
+
         while (not self.finished):
             self.takeTurn()
-            input()
-            print_lst(self.grid)
+        print_lst(self.grid)
 
 
     def takeTurn(self): 
-        print("turn number " + str(self.turn))
+        """
+        Executes an in-game turn where the player moves or puts down a wall
+        """
+
         self.curr_player = self.p1 if (self.turn % 2 == 1) else self.p2
         
         if (self.turn <= 2): 
@@ -48,11 +67,7 @@ class Board:
             return
         
         player = self.curr_player
-        print("player " + str(player.get_type()) + " turn")
-        print("generating move")
-
         move = player.pick_move() 
-        print(move)
 
         if (move == "pawn"): 
             location = self.move_pawn()
@@ -65,18 +80,30 @@ class Board:
 
 
     def move_pawn(self): 
+        """
+        Produces the next spot for a pawn to move
+        """
         curr = self.curr_player.get_location() 
         p_type = self.curr_player.get_type() 
-        new = self.check_spaces(curr, p_type) 
+        new = self.check_spaces(curr) 
         if (len(new) == 0): 
             return False
         else: 
             return random.choice(new)
 
 
-    def check_spaces(self, loc, p_type):
+    def check_spaces(self, loc):
         """
         returns a list of adjacent spaces the the player can move to
+
+        Parameters
+        ----------
+        loc: tuple
+            player's location
+
+        Returns
+        -------
+        list of tuples: list of neighbour locations that the pawn can move to
         """
         row = self.get_x(loc)
         col = self.get_y(loc)
@@ -96,10 +123,13 @@ class Board:
 
 
     def put_h_wall(self): 
+        """
+        Returns coordinates of where a horizontal wall would go
+        """
+
         validWall = False
         valid_rows = [(i * 2) + 1 for i in range (int((self.side - 2) / 2))]
         while(not validWall): 
-            print("h wall loop")
             row = random.choice(valid_rows)   
             left_side = random.choice(self.wall_cols)
             if (self.grid[row][left_side] is None 
@@ -108,33 +138,42 @@ class Board:
                 validWall = True
                 wall_coords = [(row, left_side), (row, left_side+1), (row, left_side+2)]
                 if (self.can_place_wall(wall_coords)):
-                    print("valid wall!") 
                     return wall_coords
                 else: 
                     validWall = False
 
 
     def put_v_wall(self): 
+        """
+        Returns coordinates of where a horizontal wall would go
+        """
+
         validWall = False
+        # valid columns that the wall can go
         valid_cols = [(i * 2) + 1 for i in range (int((self.side - 2) / 2))]
         while(not validWall): 
-            print("v wall loop")
+            # randomly choose column
             col = random.choice(valid_cols)   
+            # the upper unit of the wall's placement
             upper = random.choice(self.wall_rows)  
-            if (self.grid[upper][col] is None 
+            if (self.grid[upper][col] is None   
                 and self.grid[upper+1][col] is None
                 and self.grid[upper+2][col] is None): 
+                # there is space for the wall
                 validWall = True
                 wall_coords = [(upper, col),(upper+1, col), (upper+2, col)]
                 if (self.can_place_wall(wall_coords)): 
-                    print("valid wall!")
                     return wall_coords
                 else: 
                     validWall = False
 
 
-    def can_place_wall(self, coords): 
-        print("can place wall?")
+    def can_place_wall(self, coords):   
+        """
+        Returns true if the wall can be placed, 
+        false otherwise (player is blocked from winning)
+        """  
+
         self.update_board_wall(coords)
         player = self.p1 if (self.turn % 2 == 0) else self.p2
         if (self.search_paths(player.get_location(), player.get_type())):
@@ -147,52 +186,51 @@ class Board:
         
 
     def update_board_pawn(self, player, old_pos, new_pos): 
-        print("updating board pawn")
+        """
+        Updates a pawn's position on the board
+        """
+
         name = "P1" if (player.get_type() == 1) else "P2"
 
         self.grid[old_pos[0]][old_pos[1]] = None # clear the previous space
         self.grid[new_pos[0]][new_pos[1]] = name  
         self.curr_player.set_location(new_pos)  
 
-        print(name + " from " + str(old_pos) + " to " + str(new_pos))
-
         # win condition
         if (player.get_type() == 1 and new_pos[0] == 0): 
             self.finished = True
-            print("game finished! player 1 won")
         elif (player.get_type() == 2 and new_pos[0] == 16): 
             self.finished = True
-            print("game finished! player 2 won")
     
 
-    def update_board_wall(self, wall_pos): 
+    def update_board_wall(self, wall_pos):
+        """
+        updates the grid with wall placements
+        """
         name = "W" + str(self.curr_player.get_type())
         for wall in wall_pos: 
             self.grid[wall[0]][wall[1]] = name
-        print(name + " at " + str(wall_pos))
 
 
     def search_paths(self, start, p_type): 
-        print("pathfinding for player " + str(p_type))
+        """
+        Returns true if there is a valid path to the winning row of the board
+        """
+
         final_row = 0 if p_type == 1 else 16
-        
         visited = set({}) 
         queue = [start]
-
         while (not (len(queue) == 0)):
             current_loc = queue.pop(0)
 
             if (current_loc[0] == final_row) :
-                print("There is a valid path to " + str(current_loc))
                 return True
 
-            lst_neighbours = self.check_spaces(current_loc, p_type)
+            lst_neighbours = self.check_spaces(current_loc)
             for n in lst_neighbours: 
                 if (n not in visited):
                     queue.append(n)
                     visited.add(n)
-
-        print("there is no path")
         return False
 
 
@@ -202,8 +240,6 @@ class Board:
         """
         row = 16 if player.get_type() == 1 else 0
         starting_loc = random.choice(self.get_col_coords(row))
-
-        print("generated coordinate " + str(starting_loc))
         old = starting_loc.copy()
         player.set_location(starting_loc)
 
