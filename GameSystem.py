@@ -28,9 +28,15 @@ class Board:
         whether the game is finished
     turn: int
         current turn number
+    game_id: int
+        the game number
+    game_log: str dict []
+        log of all turns in the game
+    win_entry: str dict []
+        winner data entry
     """
     
-    def __init__(self):
+    def __init__(self, game_id):
         self.side = 17
         self.grid = [[None for i in range(17)] for j in range(17)]
 
@@ -42,7 +48,11 @@ class Board:
 
         self.curr_player = self.p1
         self.finished = False
-        self.turn = 1
+        self.turn = 1 
+
+        self.game_id = game_id
+        self.game_log = []
+        self.win_entry = []
         
     def playGame(self):
         """
@@ -53,7 +63,6 @@ class Board:
             self.takeTurn()
         print_lst(self.grid)
 
-
     def takeTurn(self): 
         """
         Executes an in-game turn where the player moves or puts down a wall
@@ -62,22 +71,23 @@ class Board:
         self.curr_player = self.p1 if (self.turn % 2 == 1) else self.p2
         
         if (self.turn <= 2): 
+            # first two moves are putting the players on the board
             self.update_start(self.curr_player)
             self.turn += 1
             return
         
         player = self.curr_player
-        move = player.pick_move() 
+        move = player.pick_move() # choose what move to do
 
         if (move == "pawn"): 
             location = self.move_pawn()
             self.update_board_pawn(player, player.get_location(), location)
+            self.game_log.append(self.make_move_entry(player.get_type(), location))
         elif (move == "h_wall"): 
             self.put_h_wall() 
         else: 
             self.put_v_wall()
-        self.turn += 1
-
+        self.turn += 1 # next turn
 
     def move_pawn(self): 
         """
@@ -91,10 +101,9 @@ class Board:
         else: 
             return random.choice(new)
 
-
     def check_spaces(self, loc):
         """
-        returns a list of adjacent spaces the the player can move to
+        Returns a list of adjacent spaces the the player can move to
 
         Parameters
         ----------
@@ -121,7 +130,6 @@ class Board:
 
         return neighbours
 
-
     def put_h_wall(self): 
         """
         Returns coordinates of where a horizontal wall would go
@@ -132,16 +140,18 @@ class Board:
         while(not validWall): 
             row = random.choice(valid_rows)   
             left_side = random.choice(self.wall_cols)
+
             if (self.grid[row][left_side] is None 
                 and self.grid[row][left_side+1] is None
                 and self.grid[row][left_side+2] is None): 
                 validWall = True
                 wall_coords = [(row, left_side), (row, left_side+1), (row, left_side+2)]
+
                 if (self.can_place_wall(wall_coords)):
+                    self.game_log.append(self.make_wall_entry("h wall", wall_coords, self.curr_player.get_type()))
                     return wall_coords
                 else: 
                     validWall = False
-
 
     def put_v_wall(self): 
         """
@@ -156,17 +166,20 @@ class Board:
             col = random.choice(valid_cols)   
             # the upper unit of the wall's placement
             upper = random.choice(self.wall_rows)  
+
             if (self.grid[upper][col] is None   
                 and self.grid[upper+1][col] is None
                 and self.grid[upper+2][col] is None): 
                 # there is space for the wall
                 validWall = True
                 wall_coords = [(upper, col),(upper+1, col), (upper+2, col)]
+
                 if (self.can_place_wall(wall_coords)): 
+                    # add an entry to the log
+                    self.game_log.append(self.make_wall_entry("v wall", wall_coords, self.curr_player.get_type()))
                     return wall_coords
                 else: 
                     validWall = False
-
 
     def can_place_wall(self, coords):   
         """
@@ -183,7 +196,7 @@ class Board:
             for c in coords: 
                 self.grid[c[0]][c[1]] = None # reverse changes
             return False
-        
+
 
     def update_board_pawn(self, player, old_pos, new_pos): 
         """
@@ -199,18 +212,18 @@ class Board:
         # win condition
         if (player.get_type() == 1 and new_pos[0] == 0): 
             self.finished = True
+            self.set_win_entry(1, new_pos)
         elif (player.get_type() == 2 and new_pos[0] == 16): 
             self.finished = True
+            self.set_win_entry(2, new_pos)
     
-
     def update_board_wall(self, wall_pos):
         """
-        updates the grid with wall placements
+        Updates the grid with wall placements
         """
         name = "W" + str(self.curr_player.get_type())
         for wall in wall_pos: 
             self.grid[wall[0]][wall[1]] = name
-
 
     def search_paths(self, start, p_type): 
         """
@@ -233,7 +246,6 @@ class Board:
                     visited.add(n)
         return False
 
-
     def update_start(self, player): 
         """
         Updates the board with players starting positions. 
@@ -244,6 +256,37 @@ class Board:
         player.set_location(starting_loc)
 
         self.update_board_pawn(player, old, starting_loc)
+        self.game_log.append(self.make_move_entry(player.get_type(), starting_loc))
+
+    def make_move_entry(self, p_type, location):
+        """
+        Makes an data entry of the player's move
+        """
+        dict = {"game id": self.game_id, 
+                "turn number": self.turn,
+                "player": p_type, 
+                "move type": "pawn", 
+                "location": str(location)}
+        return dict
+
+    def make_wall_entry(self, wall_type, location, p_type): 
+        """
+        Makes data entry of a wall placement
+        """
+
+        dict = {"game id": self.game_id, 
+                "turn number": self.turn,
+                "player": p_type, 
+                "move type": wall_type, 
+                "location": str(location)}
+        return dict
+        
+    def set_win_entry(self, p_type, location): 
+        dict = {"game id": self.game_id, 
+                "turn number": self.turn,
+                "player": p_type,
+                "final location": str(location)}
+        self.win_entry = [dict]
 
 
     def get_col_coords(self, row): 
@@ -259,21 +302,20 @@ class Board:
     def get_y(self, coord): 
         return coord[1]
 
-    def get_bottom_row(self): 
-        return self.bottom_row
-    
-    def get_top_row(self): 
-        return self.top_row
-    
     def get_finished(self):
         return self.finished
     
     def get_grid(self): 
         return self.grid
 
+    def get_game_log(self): 
+        return self.game_log
+    
+    def get_win_entry(self): 
+        return self.win_entry
 
 def main():
-    board = Board() 
+    board = Board(1) 
     board.playGame()
 
 if (__name__ == "__main__"): 

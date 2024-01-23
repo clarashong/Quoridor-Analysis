@@ -14,7 +14,20 @@ class Board:
     ----------
     grid: str[][] 
         grid with the game setup, player location, wall locations 
-
+    wall_cols: int[]
+        list of indexes where walls can be placed 
+    wall_cols: int[] 
+        list of indexes where walls can be placed
+    p1: Player
+        player 1 (bottom player)
+    p2: Player 
+        player 2 (top player)
+    curr_player: Player
+        the current player for the current turn
+    finished: bool
+        whether the game is finished
+    turn: int
+        current turn number
     """
     
     def __init__(self):
@@ -30,6 +43,8 @@ class Board:
         self.curr_player = self.p1
         self.finished = False
         self.turn = 1
+
+
         
     def playGame(self):
         while (not self.finished):
@@ -65,6 +80,9 @@ class Board:
 
 
     def move_pawn(self): 
+        """
+        Produces the next spot for a pawn to move
+        """
         curr = self.curr_player.get_location() 
         p_type = self.curr_player.get_type() 
         new = self.check_spaces(curr, p_type) 
@@ -74,9 +92,18 @@ class Board:
             return random.choice(new)
 
 
-    def check_spaces(self, loc, p_type):
+    def check_spaces(self, loc):
         """
         returns a list of adjacent spaces the the player can move to
+
+        Parameters
+        ----------
+        loc: tuple
+            player's location
+
+        Returns
+        -------
+        list of tuples: list of neighbour locations that the pawn can move to
         """
         row = self.get_x(loc)
         col = self.get_y(loc)
@@ -96,6 +123,9 @@ class Board:
 
 
     def put_h_wall(self): 
+        """
+        Returns coordinates of where a horizontal wall would go
+        """
         validWall = False
         valid_rows = [(i * 2) + 1 for i in range (int((self.side - 2) / 2))]
         while(not validWall): 
@@ -133,7 +163,7 @@ class Board:
                     validWall = False
 
 
-    def can_place_wall(self, coords): 
+    def can_place_wall(self, coords):         
         print("can place wall?")
         self.update_board_wall(coords)
         player = self.p1 if (self.turn % 2 == 0) else self.p2
@@ -208,6 +238,8 @@ class Board:
         player.set_location(starting_loc)
 
         self.update_board_pawn(player, old, starting_loc)
+
+
 
 
     def get_col_coords(self, row): 
