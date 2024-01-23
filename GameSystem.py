@@ -58,10 +58,10 @@ class Board:
         """
         Take turns until game is finished
         """
-
         while (not self.finished):
             self.takeTurn()
         print_lst(self.grid)
+        print("done game " + str(self.game_id))
 
     def takeTurn(self): 
         """
@@ -201,12 +201,21 @@ class Board:
     def update_board_pawn(self, player, old_pos, new_pos): 
         """
         Updates a pawn's position on the board
+
+        Parameters
+        ----------
+        player: Player
+            the player that needs to be moved
+        old_pos: int tuple
+            the player's position before moving 
+        new_pos: int tuple
+            the desired new location for the player
         """
 
         name = "P1" if (player.get_type() == 1) else "P2"
 
         self.grid[old_pos[0]][old_pos[1]] = None # clear the previous space
-        self.grid[new_pos[0]][new_pos[1]] = name  
+        self.grid[new_pos[0]][new_pos[1]] = name
         self.curr_player.set_location(new_pos)  
 
         # win condition
@@ -315,7 +324,7 @@ class Board:
         return self.win_entry
 
 def main():
-    board = Board(1) 
+    board = Board(1)
     board.playGame()
 
 if (__name__ == "__main__"): 
