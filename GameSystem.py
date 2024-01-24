@@ -60,7 +60,7 @@ class Board:
         """
         while (not self.finished):
             self.takeTurn()
-        print_lst(self.grid)
+        # print_lst(self.grid)
         print("done game " + str(self.game_id))
 
     def takeTurn(self): 
@@ -275,7 +275,8 @@ class Board:
                 "turn number": self.turn,
                 "player": p_type, 
                 "move type": "pawn", 
-                "location": str(location)}
+                "row": location[0],
+                "column": location[1]}
         return dict
 
     def make_wall_entry(self, wall_type, location, p_type): 
@@ -287,14 +288,16 @@ class Board:
                 "turn number": self.turn,
                 "player": p_type, 
                 "move type": wall_type, 
-                "location": str(location)}
+                "row": location[0][0],
+                "column": location[0][1]}
         return dict
         
     def set_win_entry(self, p_type, location): 
         dict = {"game id": self.game_id, 
                 "turn number": self.turn,
                 "player": p_type,
-                "final location": str(location)}
+                "row": location[0], 
+                "column": location[1]}
         self.win_entry = [dict]
 
 
