@@ -34,6 +34,40 @@ class Board:
         log of all turns in the game
     win_entry: str dict []
         winner data entry
+
+    Methods
+    -------
+    playGame():
+        Takes turns until game is finished. Prints the final board.
+    takeTurn():
+        Executes an in-game turn where the player moves or puts down a wall
+    move_pawn():
+        Returns the next spot for a pawn to move
+    check_spaces(self, loc):
+        Returns a list of adjacent spaces the the player can move to
+    put_v_wall():
+        Returns coordinates of where a vertical wall would go
+    put_h_wall():
+        Returns coordinates of where a horizontal wall would go
+    update_board_pawn(player, old_pos, new_pos):
+        Updates a pawn's position on the board
+    update_board_wall(wall_pos):
+        Updates the grid with wall placements
+    can_place_wall(coords):   
+        Returns true if the wall can be placed, 
+        false otherwise (player is blocked from winning)
+    search_paths(self, start, p_type): 
+        Returns true if there is a valid path to the winning row of the board
+    update_start(player):
+        Updates the board with players starting positions. 
+    make_move_entry(p_type, location):
+        Makes an data entry of the player's move
+    make_wall_entry(wall_type, location, p_type): 
+        Makes data entry of a wall placement
+    set_win_entry(p_type, location): 
+        Makes data entry for winning player
+    get_col_coords(self, row): 
+        returns where the columns are in the grid
     """
     
     def __init__(self, game_id):
@@ -56,12 +90,12 @@ class Board:
         
     def playGame(self):
         """
-        Take turns until game is finished
+        Take turns until game is finished. Prints the final board.
         """
         while (not self.finished):
             self.takeTurn()
-        # print_lst(self.grid)
-        print("done game " + str(self.game_id))
+        print_lst(self.grid)
+        # print("done game " + str(self.game_id))
 
     def takeTurn(self): 
         """
@@ -91,7 +125,7 @@ class Board:
 
     def move_pawn(self): 
         """
-        Produces the next spot for a pawn to move
+        Returns the next spot for a pawn to move
         """
         curr = self.curr_player.get_location() 
         p_type = self.curr_player.get_type() 
@@ -155,7 +189,7 @@ class Board:
 
     def put_v_wall(self): 
         """
-        Returns coordinates of where a horizontal wall would go
+        Returns coordinates of where a vertical wall would go
         """
 
         validWall = False
@@ -196,7 +230,6 @@ class Board:
             for c in coords: 
                 self.grid[c[0]][c[1]] = None # reverse changes
             return False
-
 
     def update_board_pawn(self, player, old_pos, new_pos): 
         """
@@ -293,6 +326,10 @@ class Board:
         return dict
         
     def set_win_entry(self, p_type, location): 
+        """
+        Makes data entry for winning player
+        """
+
         dict = {"game id": self.game_id, 
                 "turn number": self.turn,
                 "player": p_type,
@@ -300,8 +337,11 @@ class Board:
                 "column": location[1]}
         self.win_entry = [dict]
 
-
     def get_col_coords(self, row): 
+        """
+        returns where the columns are in the grid
+        """
+
         arr = []
         for i in range(self.side): 
             if (i % 2 == 0): 

@@ -1,3 +1,5 @@
+# test file for trying out the pathfinding algorithm
+
 grid = [[None for i in range(17)] for j in range(17)]
 start = (0,0)
 end_row = 16

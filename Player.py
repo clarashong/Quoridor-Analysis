@@ -9,6 +9,15 @@ class Player:
         The type of turn the player will take
     wall_storage: int
         The number of walls left to use
+    location: int[]
+        player's coordinates
+    
+    Methods
+    -------
+    gen_start(): 
+        generates and returns starting position of player
+    pick_move():
+        randomly chooses and returns move for player
     """
 
     def __init__(self, type):
@@ -18,6 +27,9 @@ class Player:
         self.location = []
         
     def gen_start(self): 
+        """"
+        generates and returns starting position of player
+        """
         if (self.type == 1): 
             start_pos = random.choice(self.board.get_bottom_row())
         else: 
@@ -25,6 +37,9 @@ class Player:
         return start_pos
 
     def pick_move(self): 
+        """
+        randomly chooses and returns move for player
+        """
         if (self.wall_storage <= 0): 
             self.move = "pawn"
         else: 
@@ -46,5 +61,6 @@ class Player:
     
     def use_wall(self): 
         self.wall_storage -= 1
+
 
 
